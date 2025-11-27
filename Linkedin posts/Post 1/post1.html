@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamlined Music Card</title>
+    
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            /* Dark/Minimalist Palette */
+            --bg-dark: #121212;         
+            --card-surface: #1E1E1E;    
+            --text-primary: #FFFFFF;    
+            --text-secondary: #B3B3B3;  
+            /* VLC Cone Orange/Gold Accent */
+            --accent-color: #FF8C00;    
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .music-card {
+            width: 320px;
+            padding: 25px;
+            background-color: var(--card-surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .music-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Album Artwork */
+        .album-art {
+            width: 100%;
+            height: 320px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Track Info */
+        .track-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1.4em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .track-info p {
+            margin: 0;
+            font-size: 1em;
+            color: var(--text-secondary);
+        }
+
+        /* Progress Bar Styling */
+        .progress-bar-container {
+            margin: 20px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .progress-line-wrapper {
+            flex-grow: 1;
+            height: 5px;
+            background-color: #404040;
+            border-radius: 2.5px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .progress-line {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent-color);
+            border-radius: 2.5px;
+            transition: width 0.1s linear;
+        }
+
+        /* Controls Styling */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px; 
+            font-size: 1.8em;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s ease, transform 0.1s;
+        }
+        
+        .control-btn:hover {
+            color: var(--accent-color);
+            transform: scale(1.1);
+        }
+        
+        /* New Streamlined Play/Pause Button */
+        #play-pause-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent-color); /* Solid Orange circle */
+            color: #1E1E1E; /* Dark icon inside the circle */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em; 
+            box-shadow: 0 4px 8px rgba(255, 140, 0, 0.4); /* Subtle orange glow effect */
+        }
+        
+        /* Play Icon */
+        #play-pause-btn::before {
+            content: '▶'; /* Unicode Play Triangle */
+            transform: translateX(2px); /* Nudges the triangle right for visual centering */
+        }
+        
+        /* Pause Icon */
+        .playing #play-pause-btn::before {
+            content: '❚❚'; /* Unicode Pause Bars */
+            transform: translateX(0);
+        }
+
+        /* Normal Prev/Next Icons */
+        #prev-track::before { content: '⏮'; } 
+        #next-track::before { content: '⏭'; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="music-card">
+        
+        <audio id="audio-player" src="/Post 1/my.mp3" preload="metadata"></audio>
+
+        <div class="album-art">
+            <img id="album-cover" src="/Post 1/n5.webp" alt="Anime Sunset Road">
+        </div>
+
+        <div class="track-info">
+            <h3>**Main Rang Sharbaton Ka**</h3>
+            <p>**Atif Aslam (Slowed Reverb)**</p>
+        </div>
+
+        <div class="progress-bar-container">
+            <span id="current-time">0:00</span>
+            <div id="progress-line-wrapper" class="progress-line-wrapper">
+                <div id="progress-line" class="progress-line"></div>
+            </div>
+            <span id="total-time">0:00</span>
+        </div>
+
+        <div class="controls">
+            <div id="prev-track" class="control-btn"></div>
+            <div id="play-pause-btn" class="control-btn main-control"></div>
+            <div id="next-track" class="control-btn"></div>
+        </div>
+        
+    </div>
+
+    <script>
+        // --- JAVASCRIPT LOGIC (Unchanged functionality) ---
+        const audio = document.getElementById('audio-player');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const progressLine = document.getElementById('progress-line');
+        const progressWrapper = document.getElementById('progress-line-wrapper');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+        const card = document.querySelector('.music-card');
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return '0:00';
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            const paddedSeconds = remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds;
+            return `${minutes}:${paddedSeconds}`;
+        }
+
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                card.classList.add('playing');
+            } else {
+                audio.pause();
+                card.classList.remove('playing');
+            }
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            totalTimeEl.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (!isNaN(audio.duration) && audio.duration > 0) {
+                const progressPercent = (audio.currentTime / audio.duration) * 100;
+                progressLine.style.width = progressPercent + '%';
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            }
+        });
+
+        progressWrapper.addEventListener('click', (e) => {
+            if (!isNaN(audio.duration) && audio.duration > 0) {
+                const rect = progressWrapper.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const width = rect.width;
+                const seekTime = (clickX / width) * audio.duration;
+                audio.currentTime = seekTime;
+            }
+        });
+
+        audio.addEventListener('ended', () => {
+            card.classList.remove('playing');
+            audio.currentTime = 0;
+            progressLine.style.width = '0%';
+            currentTimeEl.textContent = '0:00';
+        });
+
+        if (audio.readyState >= 1) {
+            totalTimeEl.textContent = formatTime(audio.duration);
+        }
+
+    </script>
+
+</body>
+</html>
